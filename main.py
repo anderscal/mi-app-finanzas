@@ -72,7 +72,8 @@ def crear_categoria(categoria: schemas.CategoriaCreate, db: Session = Depends(ge
     db.refresh(db_categoria)
     return db_categoria
 
-@app.post("/transacciones/", response_model=list[schemas.Transaccion], tags=["Transacciones"])
+# --- CORRECCIÓN 1: Cambiamos @app.post por @app.get ---
+@app.get("/transacciones/", response_model=list[schemas.Transaccion], tags=["Transacciones"])
 def obtener_transacciones(db: Session = Depends(get_db)):
     # Traemos las transacciones ordenadas por ID descendente (las más nuevas primero)
     transacciones = db.query(models.Transaccion).order_by(models.Transaccion.id.desc()).limit(20).all()
@@ -80,7 +81,6 @@ def obtener_transacciones(db: Session = Depends(get_db)):
 
 @app.post("/transacciones/", response_model=schemas.Transaccion, tags=["Transacciones"])
 def crear_transaccion(transaccion: schemas.TransaccionCreate, db: Session = Depends(get_db)):
-    # 1. Verificar que la cuenta y la categoría existen
     cuenta = db.query(models.Cuenta).filter(models.Cuenta.id == transaccion.cuenta_id).first()
     if not cuenta:
         raise HTTPException(status_code=404, detail="Cuenta no encontrada")
@@ -89,24 +89,24 @@ def crear_transaccion(transaccion: schemas.TransaccionCreate, db: Session = Depe
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
 
-    # 2. Crear el registro de la transacción
+    # NUEVA REGLA: Evitar saldos negativos en gastos normales (Opcional, pero recomendado)
+    if transaccion.tipo.lower() == "gasto" and cuenta.saldo_actual < transaccion.monto:
+        raise HTTPException(status_code=400, detail=f"Fondos insuficientes. Solo tienes {cuenta.saldo_actual} en {cuenta.nombre}")
+
     db_transaccion = models.Transaccion(**transaccion.model_dump())
     db.add(db_transaccion)
 
-    # 3. Actualizar el saldo de la cuenta automáticamente
     if transaccion.tipo.lower() == "gasto":
         cuenta.saldo_actual -= transaccion.monto
     elif transaccion.tipo.lower() == "ingreso":
         cuenta.saldo_actual += transaccion.monto
 
-    # 4. Guardar todos los cambios en la base de datos
     db.commit()
     db.refresh(db_transaccion)
     return db_transaccion
 
 @app.post("/transferencias/", tags=["Transferencias"])
 def crear_transferencia(transferencia: schemas.TransferenciaCreate, db: Session = Depends(get_db)):
-    # 1. Validar que las cuentas existan y no sean la misma
     origen = db.query(models.Cuenta).filter(models.Cuenta.id == transferencia.cuenta_origen_id).first()
     destino = db.query(models.Cuenta).filter(models.Cuenta.id == transferencia.cuenta_destino_id).first()
     
@@ -115,7 +115,10 @@ def crear_transferencia(transferencia: schemas.TransferenciaCreate, db: Session 
     if origen.id == destino.id:
         raise HTTPException(status_code=400, detail="No puedes transferir a la misma cuenta")
 
-    # 2. Buscar o crear la categoría "Transferencia Interna"
+    # --- CORRECCIÓN 2: Validar fondos suficientes ---
+    if origen.saldo_actual < transferencia.monto:
+        raise HTTPException(status_code=400, detail=f"Fondos insuficientes. Tu saldo en {origen.nombre} es de {origen.saldo_actual}")
+
     categoria = db.query(models.Categoria).filter(models.Categoria.nombre == "Transferencia Interna").first()
     if not categoria:
         categoria = models.Categoria(nombre="Transferencia Interna", tipo="Transferencia")
@@ -123,7 +126,6 @@ def crear_transferencia(transferencia: schemas.TransferenciaCreate, db: Session 
         db.commit()
         db.refresh(categoria)
 
-    # 3. Crear el Gasto (Salida)
     tx_salida = models.Transaccion(
         monto=transferencia.monto,
         fecha=transferencia.fecha,
@@ -133,7 +135,6 @@ def crear_transferencia(transferencia: schemas.TransferenciaCreate, db: Session 
         categoria_id=categoria.id
     )
     
-    # 4. Crear el Ingreso (Entrada)
     tx_entrada = models.Transaccion(
         monto=transferencia.monto,
         fecha=transferencia.fecha,
@@ -143,11 +144,9 @@ def crear_transferencia(transferencia: schemas.TransferenciaCreate, db: Session 
         categoria_id=categoria.id
     )
     
-    # 5. Actualizar saldos
     origen.saldo_actual -= transferencia.monto
     destino.saldo_actual += transferencia.monto
     
-    # 6. Guardar todo el bloque de una vez (Garantiza integridad)
     db.add(tx_salida)
     db.add(tx_entrada)
     db.commit()
