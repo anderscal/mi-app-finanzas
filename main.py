@@ -40,13 +40,31 @@ def obtener_categorias(db: Session = Depends(get_db)):
 
 # --- RUTAS (ENDPOINTS) ---
 
+# --- RUTAS DE CUENTAS ---
+
 @app.post("/cuentas/", response_model=schemas.Cuenta, tags=["Cuentas"])
 def crear_cuenta(cuenta: schemas.CuentaCreate, db: Session = Depends(get_db)):
+    # REGLA DE PREVENCIÓN: Buscar si ya existe una cuenta con ese nombre (ignorando mayúsculas/minúsculas)
+    cuenta_existente = db.query(models.Cuenta).filter(models.Cuenta.nombre.ilike(cuenta.nombre)).first()
+    if cuenta_existente:
+        raise HTTPException(status_code=400, detail="Error: Ya tienes una cuenta registrada con este nombre.")
+        
     db_cuenta = models.Cuenta(**cuenta.model_dump())
     db.add(db_cuenta)
     db.commit()
     db.refresh(db_cuenta)
     return db_cuenta
+
+@app.delete("/cuentas/{cuenta_id}", tags=["Cuentas"])
+def eliminar_cuenta(cuenta_id: int, db: Session = Depends(get_db)):
+    # CORRECCIÓN: Buscar la cuenta por su ID y borrarla
+    cuenta = db.query(models.Cuenta).filter(models.Cuenta.id == cuenta_id).first()
+    if not cuenta:
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada")
+    
+    db.delete(cuenta)
+    db.commit()
+    return {"mensaje": f"La cuenta {cuenta.nombre} ha sido eliminada exitosamente"}
 
 @app.post("/categorias/", response_model=schemas.Categoria, tags=["Categorías"])
 def crear_categoria(categoria: schemas.CategoriaCreate, db: Session = Depends(get_db)):
