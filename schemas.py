@@ -45,3 +45,11 @@ class TransaccionCreate(TransaccionBase):
 class Transaccion(TransaccionBase):
     id: int
     model_config = ConfigDict(from_attributes=True)
+
+# --- ESQUEMA PARA TRANSFERENCIAS ---
+class TransferenciaCreate(BaseModel):
+    cuenta_origen_id: int
+    cuenta_destino_id: int
+    monto: float
+    fecha: date
+    descripcion: str

@@ -103,3 +103,52 @@ def crear_transaccion(transaccion: schemas.TransaccionCreate, db: Session = Depe
     db.commit()
     db.refresh(db_transaccion)
     return db_transaccion
+
+def crear_transferencia(transferencia: schemas.TransferenciaCreate, db: Session = Depends(get_db)):
+    # 1. Validar que las cuentas existan y no sean la misma
+    origen = db.query(models.Cuenta).filter(models.Cuenta.id == transferencia.cuenta_origen_id).first()
+    destino = db.query(models.Cuenta).filter(models.Cuenta.id == transferencia.cuenta_destino_id).first()
+    
+    if not origen or not destino:
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada")
+    if origen.id == destino.id:
+        raise HTTPException(status_code=400, detail="No puedes transferir a la misma cuenta")
+
+    # 2. Buscar o crear la categoría "Transferencia Interna"
+    categoria = db.query(models.Categoria).filter(models.Categoria.nombre == "Transferencia Interna").first()
+    if not categoria:
+        categoria = models.Categoria(nombre="Transferencia Interna", tipo="Transferencia")
+        db.add(categoria)
+        db.commit()
+        db.refresh(categoria)
+
+    # 3. Crear el Gasto (Salida)
+    tx_salida = models.Transaccion(
+        monto=transferencia.monto,
+        fecha=transferencia.fecha,
+        descripcion=f"A {destino.nombre}: {transferencia.descripcion}",
+        tipo="Gasto",
+        cuenta_id=origen.id,
+        categoria_id=categoria.id
+    )
+    
+    # 4. Crear el Ingreso (Entrada)
+    tx_entrada = models.Transaccion(
+        monto=transferencia.monto,
+        fecha=transferencia.fecha,
+        descripcion=f"De {origen.nombre}: {transferencia.descripcion}",
+        tipo="Ingreso",
+        cuenta_id=destino.id,
+        categoria_id=categoria.id
+    )
+    
+    # 5. Actualizar saldos
+    origen.saldo_actual -= transferencia.monto
+    destino.saldo_actual += transferencia.monto
+    
+    # 6. Guardar todo el bloque de una vez (Garantiza integridad)
+    db.add(tx_salida)
+    db.add(tx_entrada)
+    db.commit()
+    
+    return {"mensaje": "Transferencia realizada con éxito"}

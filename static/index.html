@@ -33,6 +33,7 @@
         <div class="action-buttons">
             <button onclick="abrirModal('modal-cuenta')" class="btn-secondary">Nueva Cuenta</button>
             <button onclick="abrirModal('modal-categoria')" class="btn-secondary">Nueva Categoría</button>
+            <button onclick="prepararModalTransferencia()" class="btn-secondary">Transferir</button>
         </div>
     </div>
 
@@ -119,6 +120,36 @@
                     </select>
                 </div>
                 <button type="submit" class="btn-submit">Guardar Categoría</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-transferencia">
+        <div class="modal">
+            <button class="btn-close" onclick="cerrarModal('modal-transferencia')">&times;</button>
+            <div class="modal-header">Transferir Dinero</div>
+            <form id="form-transferencia" onsubmit="guardarTransferencia(event)">
+                <div class="form-group">
+                    <label>Cuenta Origen (De dónde sale)</label>
+                    <select class="form-control" id="origen_id" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Cuenta Destino (A dónde entra)</label>
+                    <select class="form-control" id="destino_id" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Monto</label>
+                    <input type="number" class="form-control" id="monto_transferencia" required min="1" placeholder="Ej. 50000">
+                </div>
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" class="form-control" id="fecha_transferencia" required>
+                </div>
+                <div class="form-group">
+                    <label>Motivo o Descripción (Opcional)</label>
+                    <input type="text" class="form-control" id="descripcion_transferencia" value="Movimiento interno">
+                </div>
+                <button type="submit" class="btn-submit">Realizar Transferencia</button>
             </form>
         </div>
     </div>

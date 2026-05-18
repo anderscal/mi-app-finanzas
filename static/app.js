@@ -182,7 +182,64 @@ async function cargarHistorial() {
         console.error("Error cargando el historial:", error);
     }
 }
+// --- LÓGICA DE TRANSFERENCIAS ---
+async function prepararModalTransferencia() {
+    abrirModal('modal-transferencia');
+    document.getElementById('fecha_transferencia').valueAsDate = new Date();
+    
+    // Cargar listas de cuentas para origen y destino
+    const resCuentas = await fetch('/cuentas/');
+    const cuentas = await resCuentas.json();
+    
+    const selectOrigen = document.getElementById('origen_id');
+    const selectDestino = document.getElementById('destino_id');
+    selectOrigen.innerHTML = '';
+    selectDestino.innerHTML = '';
+    
+    cuentas.forEach(c => {
+        const option = `<option value="${c.id}">${c.nombre} (${formatearMoneda(c.saldo_actual)})</option>`;
+        selectOrigen.innerHTML += option;
+        selectDestino.innerHTML += option;
+    });
+}
 
+async function guardarTransferencia(event) {
+    event.preventDefault();
+    
+    const data = {
+        cuenta_origen_id: parseInt(document.getElementById('origen_id').value),
+        cuenta_destino_id: parseInt(document.getElementById('destino_id').value),
+        monto: parseFloat(document.getElementById('monto_transferencia').value),
+        fecha: document.getElementById('fecha_transferencia').value,
+        descripcion: document.getElementById('descripcion_transferencia').value
+    };
+
+    if (data.cuenta_origen_id === data.cuenta_destino_id) {
+        alert("La cuenta de origen y destino no pueden ser la misma.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/transferencias/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            cerrarModal('modal-transferencia');
+            document.getElementById('form-transferencia').reset();
+            // Actualizamos los saldos y el historial
+            cargarDatos();
+            cargarHistorial();
+        } else { 
+            const errorData = await response.json();
+            alert(`Error: ${errorData.detail}`); 
+        }
+    } catch (error) { 
+        console.error("Error:", error); 
+    }
+}
 // Iniciar la app
 window.addEventListener('load', () => {
     cargarDatos();
