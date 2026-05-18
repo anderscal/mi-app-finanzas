@@ -147,32 +147,36 @@ async function guardarCategoria(event) {
 }
 
 // --- CARGA DEL HISTORIAL BANCARIO ---
+// --- CARGA DEL HISTORIAL BANCARIO ---
 async function cargarHistorial() {
+    const contenedor = document.getElementById('history-container');
     try {
-        // 1. Traemos las cuentas para poder traducir el ID al Nombre (Ej: 1 -> "Nequi")
         const resCuentas = await fetch('/cuentas/');
         const cuentas = await resCuentas.json();
         const mapaCuentas = {};
         cuentas.forEach(c => mapaCuentas[c.id] = c.nombre);
 
-        // 2. Traemos las transacciones
         const resTx = await fetch('/transacciones/');
-        const transacciones = await resTx.json();
         
-        const contenedor = document.getElementById('history-container');
-        contenedor.innerHTML = ''; // Limpiamos el mensaje de carga
+        // ¡ESTE ES EL ESCUDO QUE FALTABA!
+        if (!resTx.ok) {
+            throw new Error(`El servidor respondió con error ${resTx.status}`);
+        }
+        
+        const transacciones = await resTx.json();
+        contenedor.innerHTML = ''; 
 
         if (transacciones.length === 0) {
             contenedor.innerHTML = '<p style="text-align: center; color: #6b7280; font-size: 14px;">Aún no hay movimientos registrados.</p>';
             return;
         }
 
-        // 3. Dibujamos cada transacción con estilo bancario
         transacciones.forEach(tx => {
             const esGasto = tx.tipo === 'Gasto';
             const signo = esGasto ? '-' : '+';
             const claseColor = esGasto ? 'tx-gasto' : 'tx-ingreso';
-            const nombreCuenta = mapaCuentas[tx.cuenta_id] || 'Cuenta eliminada';
+            // Si el ID es nulo, mostrará "Cuenta eliminada o externa"
+            const nombreCuenta = mapaCuentas[tx.cuenta_id] || 'Cuenta externa';
             
             contenedor.innerHTML += `
                 <div class="tx-item">
@@ -186,6 +190,7 @@ async function cargarHistorial() {
         });
     } catch (error) {
         console.error("Error cargando el historial:", error);
+        contenedor.innerHTML = `<p style="text-align: center; color: #dc2626; font-size: 14px;">Error al cargar: ${error.message}</p>`;
     }
 }
 // --- LÓGICA DE TRANSFERENCIAS ---

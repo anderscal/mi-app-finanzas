@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import date
+from typing import Optional
 # Asegúrate de que pydantic importe 'date' añadiendo la línea de arriba si no está.
 
 # --- ESQUEMAS PARA CATEGORÍAS ---
@@ -35,9 +36,10 @@ class TransaccionBase(BaseModel):
     monto: float
     fecha: date
     descripcion: str
-    tipo: str # "Ingreso" o "Gasto"
-    cuenta_id: int
-    categoria_id: int
+    tipo: str
+    # Agregamos Optional para evitar errores 500 con registros viejos o nulos
+    cuenta_id: Optional[int] = None
+    categoria_id: Optional[int] = None
 
 class TransaccionCreate(TransaccionBase):
     pass
