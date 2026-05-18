@@ -103,6 +103,7 @@ def crear_transaccion(transaccion: schemas.TransaccionCreate, db: Session = Depe
     db.refresh(db_transaccion)
     return db_transaccion
 
+@app.post("/transferencias/", tags=["Transferencias"])
 def crear_transferencia(transferencia: schemas.TransferenciaCreate, db: Session = Depends(get_db)):
     # 1. Validar que las cuentas existan y no sean la misma
     origen = db.query(models.Cuenta).filter(models.Cuenta.id == transferencia.cuenta_origen_id).first()
