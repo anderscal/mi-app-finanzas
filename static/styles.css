@@ -201,3 +201,49 @@ body {
     cursor: pointer;
     margin-top: 10px;
 }
+
+/* --- Historial de Movimientos --- */
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.tx-item {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+}
+
+.tx-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tx-desc {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 15px;
+    text-transform: capitalize;
+}
+
+.tx-date-account {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.tx-amount {
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+}
+
+.tx-gasto { color: #dc2626; } /* Rojo bancario */
+.tx-ingreso { color: #059669; } /* Verde bancario */

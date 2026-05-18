@@ -92,6 +92,7 @@ async function guardarTransaccion(event) {
             cerrarModal('modal-transaccion');
             document.getElementById('form-transaccion').reset();
             cargarDatos();
+            cargarHistorial();
         } else { alert("Error al guardar la transacción."); }
     } catch (error) { console.error("Error:", error); }
 }
@@ -139,10 +140,53 @@ async function guardarCategoria(event) {
     } catch (error) { console.error("Error:", error); }
 }
 
+// --- CARGA DEL HISTORIAL BANCARIO ---
+async function cargarHistorial() {
+    try {
+        // 1. Traemos las cuentas para poder traducir el ID al Nombre (Ej: 1 -> "Nequi")
+        const resCuentas = await fetch('/cuentas/');
+        const cuentas = await resCuentas.json();
+        const mapaCuentas = {};
+        cuentas.forEach(c => mapaCuentas[c.id] = c.nombre);
+
+        // 2. Traemos las transacciones
+        const resTx = await fetch('/transacciones/');
+        const transacciones = await resTx.json();
+        
+        const contenedor = document.getElementById('history-container');
+        contenedor.innerHTML = ''; // Limpiamos el mensaje de carga
+
+        if (transacciones.length === 0) {
+            contenedor.innerHTML = '<p style="text-align: center; color: #6b7280; font-size: 14px;">Aún no hay movimientos registrados.</p>';
+            return;
+        }
+
+        // 3. Dibujamos cada transacción con estilo bancario
+        transacciones.forEach(tx => {
+            const esGasto = tx.tipo === 'Gasto';
+            const signo = esGasto ? '-' : '+';
+            const claseColor = esGasto ? 'tx-gasto' : 'tx-ingreso';
+            const nombreCuenta = mapaCuentas[tx.cuenta_id] || 'Cuenta eliminada';
+            
+            contenedor.innerHTML += `
+                <div class="tx-item">
+                    <div class="tx-info">
+                        <span class="tx-desc">${tx.descripcion}</span>
+                        <span class="tx-date-account">${tx.fecha} • ${nombreCuenta}</span>
+                    </div>
+                    <span class="tx-amount ${claseColor}">${signo} ${formatearMoneda(tx.monto)}</span>
+                </div>
+            `;
+        });
+    } catch (error) {
+        console.error("Error cargando el historial:", error);
+    }
+}
+
 // Iniciar la app
 window.addEventListener('load', () => {
     cargarDatos();
-    
+    cargarHistorial();
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/static/sw.js')
         .catch(err => console.log('Error en Service Worker:', err));
