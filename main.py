@@ -75,6 +75,10 @@ def crear_categoria(categoria: schemas.CategoriaCreate, db: Session = Depends(ge
     return db_categoria
 
 @app.post("/transacciones/", response_model=schemas.Transaccion, tags=["Transacciones"])
+def obtener_transacciones(db: Session = Depends(get_db)):
+    # Traemos las transacciones ordenadas por ID de forma descendente (las más nuevas primero)
+    transacciones = db.query(models.Transaccion).order_by(models.Transaccion.id.desc()).limit(20).all()
+    return transacciones
 def crear_transaccion(transaccion: schemas.TransaccionCreate, db: Session = Depends(get_db)):
     # 1. Verificar que la cuenta y la categoría existen
     cuenta = db.query(models.Cuenta).filter(models.Cuenta.id == transaccion.cuenta_id).first()

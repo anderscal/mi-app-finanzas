@@ -2,6 +2,8 @@ const formatearMoneda = (valor) => {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
 };
 
+let categoriasGlobales = [];
+
 // --- CARGA DE DATOS PRINCIPALES ---
 async function cargarDatos() {
     try {
@@ -35,11 +37,7 @@ function cerrarModal(id) {
     document.getElementById(id).style.display = 'none';
 }
 
-// Modal Transacción (Precarga listas)
-async function prepararModalTransaccion() {
-   // Variable global para almacenar las categorías en memoria
-let categoriasGlobales = [];
-
+// Modal Transacción (Precarga listas y filtra)
 async function prepararModalTransaccion() {
     abrirModal('modal-transaccion');
     document.getElementById('fecha').valueAsDate = new Date();
@@ -55,24 +53,21 @@ async function prepararModalTransaccion() {
     const resCat = await fetch('/categorias/');
     categoriasGlobales = await resCat.json();
     
-    // Ejecutar el filtro por primera vez (por defecto estará en "Gasto")
+    // Filtro inicial
     filtrarCategorias();
 }
 
-// Nueva función que filtra las opciones
+// Filtra las opciones según el tipo (Ingreso/Gasto)
 function filtrarCategorias() {
     const tipoSeleccionado = document.getElementById('tipo').value;
     const selectCat = document.getElementById('categoria_id');
-    selectCat.innerHTML = ''; // Limpiamos la lista
+    selectCat.innerHTML = ''; 
 
-    // Filtramos el arreglo buscando coincidencias exactas
     const categoriasFiltradas = categoriasGlobales.filter(c => c.tipo === tipoSeleccionado);
 
-    // Inyectamos solo las que pasaron el filtro
     categoriasFiltradas.forEach(c => {
         selectCat.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
     });
-}
 }
 
 // --- ENVÍO DE DATOS (POST) ---
@@ -118,7 +113,7 @@ async function guardarCuenta(event) {
         if (response.ok) {
             cerrarModal('modal-cuenta');
             document.getElementById('form-cuenta').reset();
-            cargarDatos(); // Actualiza la lista en pantalla
+            cargarDatos(); 
         } else { alert("Error: Verifica que el nombre no esté repetido."); }
     } catch (error) { console.error("Error:", error); }
 }
@@ -144,7 +139,7 @@ async function guardarCategoria(event) {
     } catch (error) { console.error("Error:", error); }
 }
 
-// Iniciar la app y registrar Service Worker para PWA
+// Iniciar la app
 window.addEventListener('load', () => {
     cargarDatos();
     
