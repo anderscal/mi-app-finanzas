@@ -42,3 +42,13 @@
 ### Agregado
 - Botones de acción "Nueva Cuenta" y "Nueva Categoría" en el layout principal.
 - Modales independientes para la creación de Cuentas y Categorías sin depender de Swagger.
+## [v0.9.0] - 2026-05-17
+### Agregado
+- **Filtro Reactivo de Categorías:** Implementación en `app.js` para filtrar dinámicamente las categorías mostradas en el select (`categoria_id`) dependiendo de si la transacción es un "Ingreso" o "Gasto".
+- **Corrección de Zona Horaria (UTC a Local):** Creación de la función `obtenerFechaLocal()` en JavaScript para prevenir el salto al día siguiente en los modales durante horas nocturnas.
+- **Motor de Transferencias (Partida Doble):** - Creación del esquema `TransferenciaCreate` en `schemas.py`.
+  - Implementación de ruta POST `/transferencias/` en `main.py` que crea simultáneamente un Gasto en la cuenta origen y un Ingreso en la cuenta destino bajo una misma transacción de base de datos.
+  - Creación automática de la categoría "Transferencia Interna" para aislar analíticas.
+- **Historial de Movimientos Bancarios:**
+  - Endpoint GET `/transacciones/` en `main.py` ordenado cronológicamente de forma descendente.
+  - Maquetación CSS y lógica JS (`cargarHistorial`) para renderizar un feed de transacciones similar a aplicaciones Fintech, con colores dinámicos (+ Verde / - Rojo) y traducción asíncrona de IDs a nombres de cuentas.
