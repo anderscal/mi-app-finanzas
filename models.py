@@ -6,7 +6,7 @@ class Cuenta(Base):
     __tablename__ = "cuentas"
 
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, index=True) # Ej: "Nequi", "Bancolombia", "Efectivo"
+    nombre = Column(String, unique=True, index=True) # Ej: "Nequi", "Bancolombia", "Efectivo"
     tipo = Column(String) # Ej: "Ahorro", "Corriente"
     saldo_actual = Column(Float, default=0.0)
 
@@ -17,7 +17,7 @@ class Categoria(Base):
     __tablename__ = "categorias"
 
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, index=True) # Ej: "Gastos Hormiga", "Universidad", "Transporte"
+    nombre = Column(String,unique=True, index=True) # Ej: "Gastos Hormiga", "Universidad", "Transporte"
     tipo = Column(String) # "Ingreso" o "Gasto"
 
     # Relación con transacciones

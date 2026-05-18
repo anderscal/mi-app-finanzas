@@ -34,3 +34,11 @@
 - Creación de `manifest.json` para configuración de instalación y display `standalone`.
 - Creación de `sw.js` (Service Worker) para cacheo de la *App Shell*.
 - Modificación en `index.html` agregando etiquetas meta de compatibilidad nativa para iOS (Safari).
+## [v0.8.0] - 2026-05-17
+### Modificado
+- Refactorización del frontend aplicando separación de responsabilidades (HTML, CSS, JS).
+- Creación de `static/styles.css` aislando la capa de presentación.
+- Creación de `static/app.js` encapsulando la lógica asíncrona y manipulación del DOM.
+### Agregado
+- Botones de acción "Nueva Cuenta" y "Nueva Categoría" en el layout principal.
+- Modales independientes para la creación de Cuentas y Categorías sin depender de Swagger.
