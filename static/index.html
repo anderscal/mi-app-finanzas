@@ -42,7 +42,7 @@
             <form id="form-transaccion" onsubmit="guardarTransaccion(event)">
                 <div class="form-group">
                     <label>Tipo</label>
-                    <select class="form-control" id="tipo" required>
+                    <select class="form-control" id="tipo" required onchange="filtrarCategorias()">
                         <option value="Gasto">Gasto</option>
                         <option value="Ingreso">Ingreso</option>
                     </select>

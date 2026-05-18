@@ -37,6 +37,10 @@ function cerrarModal(id) {
 
 // Modal Transacción (Precarga listas)
 async function prepararModalTransaccion() {
+   // Variable global para almacenar las categorías en memoria
+let categoriasGlobales = [];
+
+async function prepararModalTransaccion() {
     abrirModal('modal-transaccion');
     document.getElementById('fecha').valueAsDate = new Date();
     
@@ -47,12 +51,28 @@ async function prepararModalTransaccion() {
     selectCuenta.innerHTML = '';
     cuentas.forEach(c => selectCuenta.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
 
-    // Cargar Select de Categorías
+    // Descargar Categorías y guardarlas en memoria
     const resCat = await fetch('/categorias/');
-    const categorias = await resCat.json();
+    categoriasGlobales = await resCat.json();
+    
+    // Ejecutar el filtro por primera vez (por defecto estará en "Gasto")
+    filtrarCategorias();
+}
+
+// Nueva función que filtra las opciones
+function filtrarCategorias() {
+    const tipoSeleccionado = document.getElementById('tipo').value;
     const selectCat = document.getElementById('categoria_id');
-    selectCat.innerHTML = '';
-    categorias.forEach(c => selectCat.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
+    selectCat.innerHTML = ''; // Limpiamos la lista
+
+    // Filtramos el arreglo buscando coincidencias exactas
+    const categoriasFiltradas = categoriasGlobales.filter(c => c.tipo === tipoSeleccionado);
+
+    // Inyectamos solo las que pasaron el filtro
+    categoriasFiltradas.forEach(c => {
+        selectCat.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+    });
+}
 }
 
 // --- ENVÍO DE DATOS (POST) ---
