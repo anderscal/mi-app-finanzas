@@ -45,7 +45,8 @@ function cerrarModal(id) {
 // Modal Transacción (Precarga listas y filtra)
 async function prepararModalTransaccion() {
     abrirModal('modal-transaccion');
-    document.getElementById('fecha').valueAsDate = obtenerFechaLocal();
+    document.getElementById('fecha').value = obtenerFechaLocal();
+document.getElementById('fecha_transferencia').value = obtenerFechaLocal();
     
     // Cargar Select de Cuentas
     const resCuentas = await fetch('/cuentas/');
@@ -190,7 +191,8 @@ async function cargarHistorial() {
 // --- LÓGICA DE TRANSFERENCIAS ---
 async function prepararModalTransferencia() {
     abrirModal('modal-transferencia');
-    document.getElementById('fecha_transferencia').valueAsDate = obtenerFechaLocal();
+    document.getElementById('fecha').valueAsDate = obtenerFechaLocal();
+document.getElementById('fecha_transferencia').valueAsDate = obtenerFechaLocal();
     
     // Cargar listas de cuentas para origen y destino
     const resCuentas = await fetch('/cuentas/');
