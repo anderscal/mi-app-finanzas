@@ -1,0 +1,6 @@
+Encender env
+
+.\env\Scripts\activate
+
+Levantar el servidor
+uvicorn main:app --reload
