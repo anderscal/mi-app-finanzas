@@ -15,7 +15,6 @@ app = FastAPI(
     description="Motor backend para la gestión financiera personal",
     version="0.5.0"
 )
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Montamos la carpeta estática
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -36,7 +35,6 @@ def obtener_categorias(db: Session = Depends(get_db)):
     categorias = db.query(models.Categoria).all()
     return categorias
 
-# ... (Aquí debajo dejas los @app.post de cuentas, categorias y transacciones que ya tenías)
 
 # --- RUTAS (ENDPOINTS) ---
 
@@ -74,11 +72,12 @@ def crear_categoria(categoria: schemas.CategoriaCreate, db: Session = Depends(ge
     db.refresh(db_categoria)
     return db_categoria
 
-@app.post("/transacciones/", response_model=schemas.Transaccion, tags=["Transacciones"])
+@app.get("/transacciones/", response_model=list[schemas.Transaccion], tags=["Transacciones"])
 def obtener_transacciones(db: Session = Depends(get_db)):
     # Traemos las transacciones ordenadas por ID de forma descendente (las más nuevas primero)
     transacciones = db.query(models.Transaccion).order_by(models.Transaccion.id.desc()).limit(20).all()
-    return transacciones
+
+@app.post("/transacciones/", response_model=schemas.Transaccion, tags=["Transacciones"])
 def crear_transaccion(transaccion: schemas.TransaccionCreate, db: Session = Depends(get_db)):
     # 1. Verificar que la cuenta y la categoría existen
     cuenta = db.query(models.Cuenta).filter(models.Cuenta.id == transaccion.cuenta_id).first()

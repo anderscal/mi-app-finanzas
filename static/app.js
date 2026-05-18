@@ -1,7 +1,12 @@
 const formatearMoneda = (valor) => {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
 };
-
+const obtenerFechaLocal = () => {
+    const fecha = new Date();
+    // Restamos la diferencia de la zona horaria local para que no se salte al día siguiente en la noche
+    fecha.setMinutes(fecha.getMinutes() - fecha.getTimezoneOffset());
+    return fecha.toISOString().slice(0, 10);
+};
 let categoriasGlobales = [];
 
 // --- CARGA DE DATOS PRINCIPALES ---
@@ -40,7 +45,7 @@ function cerrarModal(id) {
 // Modal Transacción (Precarga listas y filtra)
 async function prepararModalTransaccion() {
     abrirModal('modal-transaccion');
-    document.getElementById('fecha').valueAsDate = new Date();
+    document.getElementById('fecha').valueAsDate = obtenerFechaLocal();
     
     // Cargar Select de Cuentas
     const resCuentas = await fetch('/cuentas/');
@@ -185,7 +190,7 @@ async function cargarHistorial() {
 // --- LÓGICA DE TRANSFERENCIAS ---
 async function prepararModalTransferencia() {
     abrirModal('modal-transferencia');
-    document.getElementById('fecha_transferencia').valueAsDate = new Date();
+    document.getElementById('fecha_transferencia').valueAsDate = obtenerFechaLocal();
     
     // Cargar listas de cuentas para origen y destino
     const resCuentas = await fetch('/cuentas/');
